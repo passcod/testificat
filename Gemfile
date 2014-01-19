@@ -8,6 +8,7 @@ gem 'redcarpet'
 gem 'sanitize'
 gem 'sequel'
 gem 'sinatra'
+gem 'sinatra-contrib', require: false
 gem 'sqlite3'
 gem 'uuidtools'
 
