@@ -75,7 +75,7 @@ post '/api/test' do
   # Create test
   
   test = Test.new
-  test.key = SecureRandom.hex(128)
+  test.key = SecureRandom.hex(512)
   test.title = params['title'] if params['title']
   test.date_created = DateTime.now
   
