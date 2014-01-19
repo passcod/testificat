@@ -120,4 +120,26 @@ end
 delete '/api/test' do
   read_json_params params
   # Remove test case
+  
+  halt 400, {error: 'No id given'}.to_json unless params['id']
+  halt 400, {error: 'No key given'}.to_json unless params['key']
+  halt 400, {error: 'No case given'}.to_json unless params['case']
+
+  test = Test[params['id']]
+
+  halt 404, {error: 'Test not found'}.to_json unless test
+  halt 403, {error: 'Wrong key'}.to_json unless test.key == params['key']
+
+  cas = Case[params['case']]
+
+  halt 404, {error: 'Case not found'}.to_json unless cas
+  halt 404, {error: 'Case not found'}.to_json unless test.cases.include? cas
+
+  begin
+    cas.destroy
+  rescue Exception => e
+    [500, {error: e.to_s}.to_json]
+  else
+    [200, {id: cas.id}.to_json]
+  end
 end
