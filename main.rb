@@ -7,7 +7,7 @@ require 'sinatra/reloader' if development?
 
 configure do
   DB = begin
-    Sequel.connect('')
+    Sequel.connect(ENV['DATABASE_URL'])
   rescue
     Sequel.connect('sqlite://test.db')
   end
