@@ -6,6 +6,8 @@ Bundler.require :default
 require 'sinatra/reloader' if development?
 
 configure do
+  use Rack::Session::Cookie, secret: ENV['COOKIE_SECRET']
+
   DB = begin
     Sequel.connect(ENV['DATABASE_URL'])
   rescue
@@ -21,13 +23,7 @@ helpers do
     o[:title] = o[:title] ? "title=\"#{[o[:title]].join(' ')}\" " : ""
     "<a #{o[:rel]}#{o[:title]}href=\"#{href}\">#{text}</a>"
   end
-end
 
-before '/api/*' do
-  content_type 'application/json'
-end
-
-helpers do
   def read_json_params(parms)
     begin
       request.body.rewind
@@ -41,6 +37,51 @@ helpers do
       puts e.inspect
     end
   end
+
+  def id_user
+    like_ip = User.where(Sequel.like(:ips_used, "%:#{request.ip}:%"))
+    session[:user] = nil
+    like_sess = User.where(Sequel.like(:session_ids, "%:#{session[:session_id]}:%"))
+    like_date = User.where{date_last_seen > DateTime.now.prev_day}
+
+    user = if like_sess.first
+      like_sess.first
+    else
+      like_heur = (like_ip.all || []) & (like_date.all || [])
+      if like_heur.size > 1
+        like_heur.sort_by{|o| o.date_last_seen}.first
+      elsif like_heur.size == 1
+        like_heur.first
+      else
+        if like_ip.all.size > 1
+          like_ip.all.sort_by{|o| o.date_last_seen}.first
+        elsif like_ip.all.size == 1
+          like_ip.first
+        else
+          User.new
+        end
+      end
+    end
+
+    user.save
+    session[:user] = user.id
+
+    user.date_last_seen = DateTime.now
+
+    user.ips_used ||= ':'
+    ips = user.ips_used.split(':').drop(1)
+    user.ips_used += "#{request.ip}:" unless ips.include? request.ip
+
+    user.session_ids ||= ':'
+    ids = user.session_ids.split(':').drop(1)
+    user.session_ids += "#{session[:session_id]}:" unless ids.include? session[:session_id]
+
+    user.save
+  end
+end
+
+before '/api/*' do
+  content_type 'application/json'
 end
 
 get '/' do
@@ -141,5 +182,91 @@ delete '/api/test' do
     [500, {error: e.to_s}.to_json]
   else
     [200, {id: cas.id}.to_json]
+  end
+end
+
+get '/api/vote' do
+  read_json_params params
+  # Get current vote
+
+  halt 400, {error: 'No id given'}.to_json unless params['id']
+
+  test = Test[params['id']]
+
+  halt 404, {error: 'Test not found'}.to_json unless test
+
+  begin
+    user = id_user
+    cho = user.choices.select{|c| c.test_id == test.id}.first
+    vote = if cho
+      cho.case_id
+    else
+      nil
+    end
+  rescue Exception => e
+    [500, {error: e.to_s}.to_json]
+  else
+    [200, {case: vote}.to_json]
+  end
+end
+
+post '/api/vote' do
+  read_json_params params
+  # Place a vote
+
+  halt 400, {error: 'No id given'}.to_json unless params['id']
+  halt 400, {error: 'No case given'}.to_json unless params['case']
+
+  test = Test[params['id']]
+
+  halt 404, {error: 'Test not found'}.to_json unless test
+
+  cas = Case[params['case']]
+
+  halt 404, {error: 'Case not found'}.to_json unless cas
+  halt 404, {error: 'Case not found'}.to_json unless test.cases.include? cas
+
+  user = id_user
+  vote = user.choices.select{|c| c.test_id == test.id}.first
+  unless vote
+    vote = Choice.new
+    vote.test = test
+    vote.user = user
+  end
+
+  vote.case = cas
+  vote.date_created = DateTime.now
+
+  begin
+    vote.save
+  rescue Exception => e
+    [500, {error: e.to_s}.to_json]
+  else
+    [200, {id: vote.id}.to_json]
+  end
+end
+
+delete '/api/vote' do
+  read_json_params params
+  # Unvote
+  session[:vote] ||= {}
+
+  halt 400, {error: 'No id given'}.to_json unless params['id']
+
+  test = Test[params['id']]
+
+  halt 404, {error: 'Test not found'}.to_json unless test
+
+  user = id_user
+  vote = user.choices.select{|c| c.test_id == test.id}.first
+
+  halt 403, {error: 'Not voted yet'}.to_json unless vote
+
+  begin
+    vote.destroy
+  rescue Exception => e
+    [500, {error: e.to_s}.to_json]
+  else
+    [200, {id: vote.id}.to_json]
   end
 end
