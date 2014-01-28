@@ -1,8 +1,51 @@
-!!! 5
-%html
-  %head
-    %title AB Testificat
-  %body
-    %h1 AB TestifiCAT!
-    %img{src: 'http://placekitten.com/640/480'}
-    %h2 Coming soon…
+%aside
+  %h1
+    %a{href: '/', title: 'Choose: this cat, that cat, or the other one?'}<
+      Testific.at
+  %h2<
+    A/B testing for
+    %del cats
+    people.
+  %p
+    Enter two or more cases to create a test. Give the
+    URL out to friends, coworkers, colleagues, and other
+    felines. Take a coffee. Have a lasagna. Come back to
+    simple stats. Easy as 1-2-3.
+  %p
+    Don't put numbers or ordering information in the test
+    cases. They will be randomised for every person to
+    avoid bias.
+  %p
+    You can use
+    %a{href: 'http://daringfireball.net/markdown/'} markdown
+    (or just plain text) in text fields. There are various
+    extensions enabled, like&nbsp;
+    %span{style: 'border: 1px solid gray'}> tables
+    ,
+    = Sanitize.clean(mkd('~~deletions~~, ^(superscripts) and ==highlights==.'), elements: %w[del mark sup])
+    Autolinking is also available.
+  %p
+    If you wish to put a title on a test case, use markdown's
+    %code # Title
+    (or underline the title with
+    %code =====
+    if you prefer). Again, to avoid bias, if you use such a title
+    on a test case, you may want to do so for all, or none at all.
+  %p
+    If you have added too many test cases, simply leave
+    each extra one empty, and it will not be taken into
+    account. Of course, this means you cannot have empty
+    test cases.
+  %p
+    Painstakenly typed out one glyph at a time by
+    %a{href: '//passcod.name'} passcod
+    using tears, blood, and hairballs.
+
+%main
+  .case
+    %textarea.content{placeholder: 'Lorem ipsum'}
+  .case
+    %textarea.content{placeholder: 'Dolore sit amet'}
+  %footer
+    %button.add Add test case
+    %button.save Save

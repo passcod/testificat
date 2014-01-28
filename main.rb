@@ -15,6 +15,16 @@ configure do
   end
   
   require './models'
+
+  MKD = Redcarpet::Markdown.new Redcarpet::Render::HTML,
+    autolink: true,
+    disable_indented_code_blocks: true,
+    fenced_code_blocks: true,
+    highlight: true,
+    quote: true,
+    strikethrough: true,
+    superscript: true,
+    tables: true
 end
 
 helpers do
@@ -22,6 +32,10 @@ helpers do
     o[:rel] = o[:rel] ? "rel=\"#{[o[:rel]].join(' ')}\" " : ""
     o[:title] = o[:title] ? "title=\"#{[o[:title]].join(' ')}\" " : ""
     "<a #{o[:rel]}#{o[:title]}href=\"#{href}\">#{text}</a>"
+  end
+
+  def mkd raw
+    MKD.render raw
   end
 
   def read_json_params(parms)
@@ -89,7 +103,23 @@ get '/' do
 end
 
 get '/test/:id' do
-  haml :test
+  @test = Test[params[:id]]
+  if @test
+    haml :test
+  else
+    haml :_404
+  end
+end
+
+get '/resource/:file' do
+  name, ext = params[:file].split '.'
+  eng, type = {
+    'js'  => [:coffee,  'application/javascript'],
+    'css' => [:scss,    'text/css']
+  }[ext]
+
+  content_type type
+  send eng, ['resource', name].join('/').to_sym
 end
 
 get '/api/test/:id' do
@@ -106,8 +136,8 @@ get '/api/test' do
   test = Test[params['id']]
   halt [404, {error: 'Not found'}.to_json] unless test
 
-  data = test.to_hash.reject{|k| k == :key}
-  data['cases'] = test.cases.map{|c| c.to_hash.reject{|k| k == :test_id}}.shuffle
+  data = test.to_hash.reject{|k| [:key, :user_id].include? k}
+  data['cases'] = test.cases.map{|c| c.to_hash.reject{|k| [:test_id, :user_id].include? k}}.shuffle
   data.to_json
 end
 
@@ -119,6 +149,7 @@ post '/api/test' do
   test.key = SecureRandom.hex(512)
   test.title = params['title'] if params['title']
   test.date_created = DateTime.now
+  test.user = id_user
   
   begin
     test.save
@@ -148,6 +179,7 @@ put '/api/test' do
   cas.type = params['type'] if params['type']
   cas.title = params['title'] if params['title']
   cas.date_created = DateTime.now
+  cas.user = id_user
 
   begin
     cas.save
