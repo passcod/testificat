@@ -3,7 +3,9 @@
   %head
     %title Testific.at - A/B testing for cats
     %link{rel: 'stylesheet', href: '/resource/style.css'}
+    %link{rel: 'shortcut icon', href: '/resource/icon.png'}
   %body
     = yield
-    %script{src: '/resource/jquery.min.js'}
+    %script{src: '//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js'}
+    %script{src: '//cdnjs.cloudflare.com/ajax/libs/async/0.2.7/async.min.js'}
     %script{src: '/resource/script.js'}

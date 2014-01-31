@@ -1,6 +1,7 @@
 %aside
   %h1
     %a{href: '/', title: 'Choose: this cat, that cat, or the other one?'}<
+      %img{src: '/resource/icon.png', alt: 'Favicon', height: 16}
       Testific.at
   %h2<
     A/B testing for
@@ -37,9 +38,15 @@
     account. Of course, this means you cannot have empty
     test cases.
   %p
-    Painstakenly typed out one glyph at a time by
+    Painstakenly
+    %a{href: '//github.com/passcod/testificat'} typed out
+    one glyph at a time by
     %a{href: '//passcod.name'} passcod
     using tears, blood, and hairballs.
+    Icon designed by
+    %a{href: '//thenounproject.com/Olivier%20Guin'} Olivier Guin
+    and licensed under
+    %a{href: '//creativecommons.org/licenses/by/3.0/us/'} CC-BY.
 
 %main
   .case
@@ -48,4 +55,4 @@
     %textarea.content{placeholder: 'Dolore sit amet'}
   %footer
     %button.add Add test case
-    %button.save Save
+    %button.create Save

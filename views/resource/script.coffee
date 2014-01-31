@@ -6,6 +6,10 @@ rootfn = arguments.callee
 firstp = arguments[0] != 'jq'
 return ($ -> rootfn.call(rootob, 'jq')) if firstp
 
+
+# The Store is basically a singleton,
+# but there's no need to enforce that
+# as we're within a closure.
 class StoreC
   @defaults =
     tests: '{}'
@@ -30,15 +34,9 @@ class StoreC
 
 @Store = new StoreC
 
-$('button.add').click ->
-  $cases = $('.case')
-  $newca = $cases.first().clone()
-  $textc = $('textarea', $newca)
-  $textc.val('')
-  $cases.last().after($newca)
-  $textc.focus()
 
-@T =
+# Just wrapping the API in easy-to-use functions…
+@Test =
   get: (id, cb) ->
     $.ajax
       method: 'GET'
@@ -52,7 +50,53 @@ $('button.add').click ->
         cb(jso) if typeof cb is 'function'
 
   create: (cb) ->
-    $.post '/api/test', (res) ->
-      return console.error(res.error, @) if res.error
-      Store.push('tests', res.id, res.key)
-      cb(res.id) if typeof cb is 'function'
+    $.ajax
+      method: 'POST'
+      url: '/api/test'
+      dataType: 'json'
+      complete: (res) ->
+        jso = res.responseJSON
+        return console.error(res) unless jso
+        return console.error(jso.error, @) if jso.error
+        Store.push('tests', jso.id, jso.key)
+        cb(jso.id) if typeof cb is 'function'
+
+  addCase: (id, content, cb) ->
+    $.ajax
+      method: 'PUT'
+      url: '/api/test'
+      data: JSON.stringify {
+        id: id
+        content: content
+        key: Store.get('tests')[id]
+      }
+      dataType: 'json'
+      complete: (res) ->
+        jso = res.responseJSON
+        return console.error(res) unless jso
+        return console.error(jso.error, @) if jso.error
+        cb(jso) if typeof cb is 'function'
+
+
+# This is the homepage's and edit form's
+# "Add test case" button.
+$('button.add').click ->
+  $cases = $('.case')
+  $newca = $cases.first().clone()
+  $textc = $('textarea', $newca)
+  $textc.val('')
+  $cases.last().after($newca)
+  $textc.focus()
+
+# This is the homepage's create button.
+$('button.create').click ->
+  $cases = $('.case')
+  cases = []
+  $cases.each -> cases.push $('textarea', @).val()
+  
+  Test.create (id) ->
+    async.each cases, (item, cb) ->
+      Test.addCase id, item, -> cb()
+    , (err) ->
+      return console.error(err) if err
+      location.replace "/test/#{id}"
