@@ -92,6 +92,8 @@ helpers do
 
     user.save
   end
+
+  alias_method :current_user, :id_user
 end
 
 before '/api/*' do

@@ -11,34 +11,28 @@
       - else
         \##{@test.id}
   %p
-    Lorem ipsum dolore sit amor. Man's best friend is a cat,
-    dogs are merely there to keep their places warm. There are
-    nine lives to a cat, six to a rat, three to a straw field.
-    Straws are great for getting liquids out of tight-lipped
-    containers. Usage on humans is not recommended.
+    Each box is a different version of the same thing.
+    Read / review / look at / etc… each, and vote for
+    whichever you think is the best by clicking on it.
   %p
-    Five servings are more than enough for any normal-sized
-    individual. 'Cervings' is an imaginary term for small,
-    childish deerlings. 'Deerlings' is similar. Programmers
-    seem to enjoy recursive humour. This is not a tail end.
+    You can change your vote anytime, as well as "unvote"
+    by clicking your selection a second time.
   %p
-    A sharp knife, a <em>quignon</em> of bread, and a one-piece
-    peel of clementine. Sitting upon a wooden table. Brown.
-    Colour of wood, earth, river, and shit. A sharp knife covered
-    with blood. The last bread of the damned. The peel of the
-    <em>boureau</em>'s clementine.
-  %p
-    Goodbye. 
-
+    Voting doesn't
+    %em require
+    cookies, but it helps keeping things fair. If you
+    do not allow cookies, you will be identified using
+    your IP address — which could potentially stop you
+    from voting if you are in the same building as another
+    user!
 %main
+  - vote = @test.choices.find { |c| c.user.id == current_user.id }
   - if @test.cases.size < 1
     %p Nothing to see here, move along.
   - else
     - @test.cases.shuffle.each do |c|
-      - vote = Random.new.rand > 0.5
-      .case{data: {id: c.id, vote: vote}}
-        -# if c.title
-          %h1= c.title
+      - voted = vote ? vote.case == c : false
+      .case{data: {id: c.id, vote: voted}}
         .content<= mkd c.content
         .actions
-          %button= vote ? 'Unvote' : 'Vote'
+          %button.vote= voted ? 'Unvote' : 'Vote'

@@ -76,7 +76,36 @@ class StoreC
         return console.error(res) unless jso
         return console.error(jso.error, @) if jso.error
         cb(jso) if typeof cb is 'function'
+  
+  vote: (id, cas, cb) ->
+    $.ajax
+      method: 'POST'
+      url: '/api/vote'
+      data: JSON.stringify {
+        id: id
+        case: cas
+      }
+      dataType: 'json'
+      complete: (res) ->
+        jso = res.responseJSON
+        return console.error(res) unless jso
+        return console.error(jso.error, @) if jso.error
+        cb(jso) if typeof cb is 'function'
 
+  unvote: (id, cb) ->
+    $.ajax
+      method: 'DELETE'
+      url: '/api/vote'
+      data: JSON.stringify {
+        id: id
+      }
+      dataType: 'json'
+      complete: (res) ->
+        jso = res.responseJSON
+        return console.error(res) unless jso
+        return console.error(jso.error, @) if jso.error
+        cb(jso) if typeof cb is 'function'
+ 
 
 # This is the homepage's and edit form's
 # "Add test case" button.
@@ -100,3 +129,20 @@ $('button.create').click ->
     , (err) ->
       return console.error(err) if err
       location.replace "/test/#{id}"
+
+# This is the testpage's (un)vote buttons
+$('.case button.vote').click ->
+  $this = $(@)
+  $case = $(@).parents('.case')
+  $test = $('#test')
+  if $case.attr('data-vote') != undefined
+    Test.unvote($test.data('id'))
+    $case.removeAttr('data-vote')
+    $this.text('Vote')
+  else
+    Test.vote($test.data('id'), $case.data('id'))
+    $other = $('.case[data-vote]')
+    $other.removeAttr('data-vote')
+    $('button.vote', $other).text('Vote')
+    $case.attr('data-vote', true)
+    $this.text('Unvote')
