@@ -85,6 +85,20 @@ body {
         background: $green;
       }
     }
+
+    .votes {
+      bottom: 0;
+      color: white;
+      font-size: 2rem;
+      padding: 0.5em;
+      position: absolute;
+      right: 0;
+      width: auto;
+
+      &:after {
+        content: '☑';
+      }
+    }
   }
 
   &[data-vote] {

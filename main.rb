@@ -93,6 +93,18 @@ helpers do
     user.save
   end
 
+  def current_owner? test
+    test.user.id == current_user.id
+  end
+
+  def public_stats? test
+    current_owner?(test) || test.public_stats
+  end
+
+  def user_voted? test
+    !!test.choices.find{|c| c.user_id == current_user.id}
+  end
+
   alias_method :current_user, :id_user
 end
 
@@ -135,11 +147,21 @@ get '/api/test' do
   read_json_params params
   # Retrieve
   
+  halt 400, {error: 'No id given'}.to_json unless params['id']
+  
   test = Test[params['id']]
   halt [404, {error: 'Not found'}.to_json] unless test
 
-  data = test.to_hash.reject{|k| [:key, :user_id].include? k}
+  unprivate = if params['key']
+    halt 403, {error: 'Wrong key'}.to_json unless test.key == params['key']
+    true
+  else
+    public_stats? test
+  end
+
+  data = test.to_hash.reject{|k| [:key, :user_id, :public_stats].include? k}
   data['cases'] = test.cases.map{|c| c.to_hash.reject{|k| [:test_id, :user_id].include? k}}.shuffle
+  data['votes'] = test.choices.map{|c| c.to_hash.reject{|k| [:test_id, :user_id].include? k}} if unprivate
   data.to_json
 end
 
@@ -152,7 +174,8 @@ post '/api/test' do
   test.title = params['title'] if params['title']
   test.date_created = DateTime.now
   test.user = id_user
-  
+  test.public_stats = true if params['public']
+
   begin
     test.save
   rescue Exception => e

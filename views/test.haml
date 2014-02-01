@@ -36,3 +36,5 @@
         .content<= mkd c.content
         .actions
           %button.vote= voted ? 'Unvote' : 'Vote'
+          - if current_owner?(@test) || (public_stats?(@test) && user_voted?(@test))
+            .votes&= c.choices.count
