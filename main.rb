@@ -98,7 +98,7 @@ helpers do
   end
 
   def public_stats? test
-    test.public_stats
+    current_owner?(test) || test.public_stats
   end
 
   def user_voted? test

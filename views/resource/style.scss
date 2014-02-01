@@ -8,6 +8,11 @@
 $maincolor: #111;
 
 html {
+  background-attachment: fixed;
+  background-image: url('/resource/icon.svg');
+  background-position: right bottom;
+  background-repeat: no-repeat;
+  background-size: 300px;
   color: $maincolor;
   font-family: sans-serif;
   font-size: 12px;
@@ -17,6 +22,7 @@ body {
   $side: 250px;
 
   &> aside, &> main {
+    background: rgba(255, 255, 255, 0.8);
     padding: 1em;
     position: absolute;
     top: 0px;
@@ -33,6 +39,7 @@ body {
   }
 
   &> main {
+    border-radius: 0 0 5px 0;
     left: $side;
   }
 }
