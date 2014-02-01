@@ -11,7 +11,7 @@ return ($ -> rootfn.call(rootob, 'jq')) if firstp
 # but there's no need to enforce that
 # as we're within a closure.
 class StoreC
-  @defaults =
+  defaults =
     tests: '{}'
 
   get: (k) ->
