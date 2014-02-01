@@ -41,8 +41,9 @@ class StoreC
     $.ajax
       method: 'GET'
       url: '/api/test'
-      data: {id: id}
+      data: JSON.stringify {id: id}
       dataType: 'json'
+      contentType: 'application/json; charset=UTF-8'
       complete: (res) ->
         jso = res.responseJSON
         return console.error(res) unless jso
@@ -70,6 +71,7 @@ class StoreC
         content: content
         key: Store.get('tests')[id]
       }
+      contentType: 'application/json; charset=UTF-8'
       dataType: 'json'
       complete: (res) ->
         jso = res.responseJSON
@@ -86,6 +88,7 @@ class StoreC
         case: cas
       }
       dataType: 'json'
+      contentType: 'application/json; charset=UTF-8'
       complete: (res) ->
         jso = res.responseJSON
         return console.error(res) unless jso
@@ -100,6 +103,7 @@ class StoreC
         id: id
       }
       dataType: 'json'
+      contentType: 'application/json; charset=UTF-8'
       complete: (res) ->
         jso = res.responseJSON
         return console.error(res) unless jso
