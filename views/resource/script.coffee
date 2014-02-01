@@ -50,11 +50,22 @@ class StoreC
         return console.error(jso.error, @) if jso.error
         cb(jso) if typeof cb is 'function'
 
-  create: (cb) ->
+  create: (pub, cb = false) ->
+    if typeof pub is 'function'
+      cb = pub
+      pub = false
+    
+    data = if pub
+      {public: true}
+    else
+      {}
+
     $.ajax
       method: 'POST'
       url: '/api/test'
+      data: JSON.stringify data
       dataType: 'json'
+      contentType: 'application/json; charset=UTF-8'
       complete: (res) ->
         jso = res.responseJSON
         return console.error(res) unless jso
@@ -126,8 +137,9 @@ $('button.create').click ->
   $cases = $('.case')
   cases = []
   $cases.each -> cases.push $('textarea', @).val()
+  pub = $('input[name=public]').is(':checked')
   
-  Test.create (id) ->
+  Test.create pub, (id) ->
     async.each cases, (item, cb) ->
       Test.addCase id, item, -> cb()
     , (err) ->
