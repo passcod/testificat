@@ -136,7 +136,9 @@ $('button.add').click ->
 $('button.create').click ->
   $cases = $('.case')
   cases = []
-  $cases.each -> cases.push $('textarea', @).val()
+  $cases.each ->
+    content = $('textarea', @).val()
+    cases.push content if typeof content is 'string' and content.length > 0
   pub = $('input[name=public]').is(':checked')
   
   Test.create pub, (id) ->
